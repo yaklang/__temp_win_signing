@@ -1,0 +1,55 @@
+name: Build and Sign Windows Executable
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-sign:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Build Windows executable
+      run: |
+        $env:GOOS = "windows"
+        $env:GOARCH = "amd64"
+        go build -o hello-world.exe main.go
+
+    - name: Download AzureSignTool
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/vcsjones/AzureSignTool/releases/download/2.0.0/AzureSignTool.zip" -OutFile "AzureSignTool.zip"
+        Expand-Archive -Path "AzureSignTool.zip" -DestinationPath "." -Force
+
+    - name: Sign executable with Azure Key Vault
+      run: |
+        .\AzureSignTool\AzureSignTool.exe sign `
+          -kvu "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_URI }}" `
+          -kvi "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_APPLICATION_ID }}" `
+          -kvs "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_CLIENT_SECRET }}" `
+          -kvc "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_CERT_NAME }}" `
+          -tr "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_TIMESTAMP_URL }}" `
+          -v `
+          hello-world.exe
+
+    - name: Verify signature
+      run: |
+        Get-AuthenticodeSignature hello-world.exe | Format-List
+
+    - name: Upload signed executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: signed-windows-exe
+        path: hello-world.exe
+        retention-days: 30
+
