@@ -34,6 +34,7 @@ jobs:
         AzureSignTool sign `
           -kvu "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_URI }}" `
           -kvi "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_APPLICATION_ID }}" `
+          -kvt "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_DIRECTORY_ID }}" `
           -kvs "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_CLIENT_SECRET }}" `
           -kvc "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_CERT_NAME }}" `
           -tr "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_TIMESTAMP_URL }}" `
