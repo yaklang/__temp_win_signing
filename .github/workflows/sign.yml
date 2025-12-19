@@ -26,14 +26,12 @@ jobs:
         $env:GOARCH = "amd64"
         go build -o hello-world.exe main.go
 
-    - name: Download AzureSignTool
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/vcsjones/AzureSignTool/releases/download/2.0.0/AzureSignTool.zip" -OutFile "AzureSignTool.zip"
-        Expand-Archive -Path "AzureSignTool.zip" -DestinationPath "." -Force
+    - name: Install AzureSignTool
+      run: dotnet tool install --global AzureSignTool
 
     - name: Sign executable with Azure Key Vault
       run: |
-        .\AzureSignTool\AzureSignTool.exe sign `
+        AzureSignTool sign `
           -kvu "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_URI }}" `
           -kvi "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_APPLICATION_ID }}" `
           -kvs "${{ secrets.AZURE_YAK_CODE_SIGN_KEY_VAULT_CLIENT_SECRET }}" `
